@@ -1,0 +1,21 @@
+version: '3.8'
+
+x-sourcecBuilder: &sourceBuilder
+  context: ./Builders/
+  dockerfile: SourceBuilder.Dockerfile
+
+services:
+  #
+  # Caddy Source
+  #
+  # Website: https://caddyserver.com/
+  # GitHub: https://github.com/google/cadvisor
+  #
+  caddyMainSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /go/src/github.com/caddyserver
+        FETCH_CMD: git clone --depth 1 -b master https://github.com/caddyserver/caddy
+        SOURCE_PATH: /go/src/github.com/caddyserver/caddy
+    image: kristianfoss/source-caddy:main-scratch

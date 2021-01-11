@@ -1,0 +1,49 @@
+version: '3.8'
+
+x-sourceStaticBuilder: &sourceStaticBuilder
+  context: ./Builders/
+  dockerfile: SourceStaticBuilder.Dockerfile
+
+services:
+  #
+  # Caddy
+  #
+  # Website: https://caddyserver.com/
+  # GitHub: https://github.com/google/cadvisor
+  #
+
+  caddyMainScratch:
+    build:
+      <<: *sourceStaticBuilder
+      args:
+        SOURCE_IMAGE: kristianfoss/source-caddy:main-scratch
+        BUILD_IMAGE: golang:1.14-alpine
+        SOURCE_PATH: /go/src/github.com/caddyserver/caddy
+        BINARY_NAME: caddy
+        BUILD_PKGS: bash
+        SETUP_CMD: go get -u github.com/caddyserver/xcaddy/cmd/xcaddy
+        BUILD_CMD: |
+          export PATH="$$PATH:/data/go/bin"
+          xcaddy build
+        POST_CMD: |
+          mv /go/src/github.com/caddyserver/caddy/caddy /tmp/caddy/usr/bin/
+        FINAL_BASE: scratch
+    image: kristianfoss/programs-caddy:caddy-main-scratch
+
+  caddyCFMainScratch:
+    build:
+      <<: *sourceStaticBuilder
+      args:
+        SOURCE_IMAGE: kristianfoss/source-caddy:main-scratch
+        BUILD_IMAGE: golang:1.14-alpine
+        SOURCE_PATH: /go/src/github.com/caddyserver/caddy
+        BINARY_NAME: caddy
+        BUILD_PKGS: bash
+        SETUP_CMD: go get -u github.com/caddyserver/xcaddy/cmd/xcaddy
+        BUILD_CMD: |
+          export PATH="$$PATH:/data/go/bin"
+          xcaddy build v2.2.0-rc.1 --with github.com/caddy-dns/cloudflare@latest
+        POST_CMD: |
+          mv /go/src/github.com/caddyserver/caddy/caddy /tmp/caddy/usr/bin/
+        FINAL_BASE: scratch
+    image: kristianfoss/programs-caddy:caddy-cf-main-scratch

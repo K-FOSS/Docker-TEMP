@@ -1,0 +1,24 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+
+  # schedule:
+  #   #   # * is a special character in YAML so you have to quote this string
+  #   - cron: '* 23 * * *'
+
+jobs:
+  Test:
+    name: Build Images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Images
+        run: ./bin/buildTest.sh
+        working-directory: ./Images
+        env:
+          USERNAME: kristianfjones
+          PASSWORD: ${{ secrets.DOCKER_HUB_TOKEN }}

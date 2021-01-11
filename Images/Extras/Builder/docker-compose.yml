@@ -1,0 +1,56 @@
+version: '3.7'
+
+volumes:
+  dockerSocket:
+    name: docker-socket
+    external: true
+
+  dockerCLIData:
+    name: dockercli-data
+    external: true
+
+  test:
+
+services:
+  DockerDaemon:
+    image: kristianfoss/programs-docker:dockerd-rootless-main-scratch
+    command:
+      [
+        '--net=vpnkit',
+        '--disable-host-loopback',
+        '--copy-up=/etc',
+        '--copy-up=/run',
+        '--copy-up=/workspace',
+        'dockerd',
+        '--experimental',
+        '--rootless',
+      ]
+    restart: unless-stopped
+    privileged: true
+    security_opt:
+      - seccomp=unconfined
+    user: user
+    cap_add:
+      - NET_ADMIN
+      - SETGID
+      - SYS_ADMIN
+      - SYS_CHROOT
+      - SETUID
+    environment:
+      XDG_RUNTIME_DIR: /run/user/1000
+    volumes:
+      - dockerSocket:/run/user/1000
+      - ./daemon.json:/etc/docker/daemon.json:ro
+      - ../../:/workspace
+
+  Docker:
+    image: kristianfoss/programs-docker:docker-cli-buildx-stable-debian
+    entrypoint: ['/bin/sh']
+    stdin_open: true
+    working_dir: /workspace
+    depends_on:
+      - DockerDaemon
+    volumes:
+      - dockerSocket:/var/run
+      - dockerSocket:/home/kristianfjones/.docker"
+      - ../../:/workspace
