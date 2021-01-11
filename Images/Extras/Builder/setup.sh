@@ -21,8 +21,8 @@ createVolume() {
     else
       echo "Successfully created socket volume"
 
-      docker run -it --rm -v ${volumeName}:/tmp/data/socket --user 0 ${TOUCH_IMAGE} /tmp/data/socket/helloWorld
-      docker run -it --rm -v ${volumeName}:/tmp/data/socket --user 0 ${CHOWN_IMAGE} -R 1000:1000 /tmp
+      docker run --rm -v ${volumeName}:/tmp/data/socket --user 0 ${TOUCH_IMAGE} /tmp/data/socket/helloWorld
+      docker run --rm -v ${volumeName}:/tmp/data/socket --user 0 ${CHOWN_IMAGE} -R 1000:1000 /tmp
       return 0
     fi
   else

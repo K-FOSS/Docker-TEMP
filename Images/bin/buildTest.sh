@@ -6,6 +6,9 @@ PUSH_IMAGES="kristianfoss/programs-caddy"
 cd "${BASEDIR}/../Extras/Builder/"
 ./setup.sh
 docker-compose up -d
+docker-compose ps
+docker ps
+docker ps -a
 
 sleep 30
 
