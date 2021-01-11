@@ -6,6 +6,103 @@ x-sourcecBuilder: &sourceBuilder
 
 services:
   #
+  # GLIBC
+  #
+  # Website: https://www.gnu.org/software/libc/started.html
+  # Repo: sourceware.org/git/glibc.git
+  # Docs: https://www.gnu.org/software/libc/documentation.html
+  #
+  glibcStableSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /src
+        FETCH_PKGS: ack wget
+        FETCH_CMD: |
+          mkdir -p /src/glibc
+          export GLIBC_VERSION=$$(wget -O - -q https://ftp.gnu.org/gnu/glibc/ | ack -o 'glibc-\d{1,2}\.\d{1,2}' | tail -1)
+          echo "Getting GLIBC Version $${GLIBC_VERSION}"
+          wget -O - https://ftp.gnu.org/gnu/glibc/$${GLIBC_VERSION}.tar.gz | tar xz -C /src/glibc --strip-components=1
+        SOURCE_PATH: /src/glibc
+    image: kristianfoss/source-glibc:stable-scratch
+
+  #
+  # libisl
+  #
+  # Website: http://freshmeat.sourceforge.net/projects/isl
+  #
+  libislStableSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /src
+        FETCH_PKGS: ack wget
+        FETCH_CMD: |
+          mkdir -p /src/libisl
+          wget -O - https://gcc.gnu.org/pub/gcc/infrastructure/isl-0.18.tar.bz2 | tar xj -C /src/libisl --strip-components=1
+        SOURCE_PATH: /src/libisl
+    image: kristianfoss/source-libisl:stable-scratch
+
+  #
+  # GCC
+  #
+  # Website: https://gcc.gnu.org/
+  # Repo: gcc.gnu.org/git/gcc.git
+  # Docs: https://gcc.gnu.org/wiki
+  #
+  gccStableSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /src
+        FETCH_PKGS: ack wget
+        FETCH_CMD: |
+          mkdir -p /src/gcc
+          export GCC_VERSION=$$(wget -O - -q https://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/ | ack -o 'gcc-\d{1,2}\.\d{1,2}\.\d{1,2}' | tail -1)
+          echo "Getting GCC Version $${GCC_VERSION}"
+          wget -O - https://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/$${GCC_VERSION}/$${GCC_VERSION}.tar.xz | tar xJ -C /src/gcc --strip-components=1
+        SOURCE_PATH: /src/gcc
+    image: kristianfoss/source-gcc:stable-scratch
+
+  #
+  # Binutils
+  #
+  # Website: https://sourceware.org/binutils/
+  #
+  binutilsStableSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /src
+        FETCH_PKGS: ack wget
+        FETCH_CMD: |
+          mkdir -p /src/binutils
+          export BINUTILS_VERSION=$$(wget -O - -q https://ftp.gnu.org/gnu/binutils/ | ack -o 'binutils-\d{1,2}\.\d{1,2}\.\d{1,2}' | tail -1)
+          echo "Getting BIN Utils Version $${BINUTILS_VERSION}"
+          wget -O - https://ftp.gnu.org/gnu/binutils/$${BINUTILS_VERSION}.tar.xz | tar xJ -C /src/binutils --strip-components=1
+        SOURCE_PATH: /src/binutils
+    image: kristianfoss/source-binutils:stable-scratch
+
+  #
+  # Linux Headers
+  #
+  # Website:
+  #
+  linuxheadersStableSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /src
+        FETCH_PKGS: ack wget
+        FETCH_CMD: |
+          mkdir -p /src/linux-headers
+          export LINUX_HEADERS_VERSION=$$(wget -O - -q https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/ | ack -o 'linux-\d{1,2}\.\d{1,2}\.\d{1,2}' | tail -1)
+          echo "Getting Linux Headers Version $${LINUX_HEADERS_VERSION}"
+          wget -O - https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/$${LINUX_HEADERS_VERSION}.tar.xz | tar xJ -C /src/linux-headers --strip-components=1
+        SOURCE_PATH: /src/linux-headers
+    image: kristianfoss/source-linux-headers:stable-scratch
+
+  #
   # Caddy Source
   #
   # Website: https://caddyserver.com/
@@ -19,3 +116,4 @@ services:
         FETCH_CMD: git clone --depth 1 -b master https://github.com/caddyserver/caddy
         SOURCE_PATH: /go/src/github.com/caddyserver/caddy
     image: kristianfoss/source-caddy:main-scratch
+

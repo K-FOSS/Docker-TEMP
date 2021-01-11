@@ -1,7 +1,11 @@
 #!/bin/sh
 BASEDIR=$(dirname "$0")
 
-PUSH_IMAGES="kristianfoss/programs-caddy"
+PUSH_IMAGES="kristianfoss/source-glibc \
+  kristianfoss/source-libisl:stable-scratch \
+  kristianfoss/source-gcc:stable-scratch \
+  kristianfoss/source-caddy:main-scratch
+  kristianfoss/programs-caddy"
 
 cd "${BASEDIR}/../Extras/Builder/"
 ./setup.sh

@@ -1,10 +1,174 @@
 version: '3.8'
 
+x-sourceLibraryBuilder: &sourceLibraryBuilder
+  context: ./Builders/
+  dockerfile: SourceLibraryBuilder.Dockerfile
+
 x-sourceStaticBuilder: &sourceStaticBuilder
   context: ./Builders/
   dockerfile: SourceStaticBuilder.Dockerfile
 
 services:
+  #
+  # GLIBC
+  #
+  # Website: https://www.gnu.org/software/libc/started.html
+  # Repo: sourceware.org/git/glibc.git
+  # Docs: https://www.gnu.org/software/libc/documentation.html
+  #
+  glibcStableScratch:
+    build:
+      <<: *sourceLibraryBuilder
+      args:
+        SOURCE_IMAGE: kristianfoss/source-glibc:stable-scratch
+        BUILD_IMAGE: debian:sid-slim
+        DEFAULT_PKGS: build-essential
+        PKG_MANAGER: rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && apt update && apt-get --no-install-recommends install -y
+        SOURCE_PATH: /src/glibc
+        DEP1: kristianfoss/library-glibc:glibc-build-stable-scratch
+        DEP1SRC: /
+        DEP1DEST: /newsys
+        DEP2: kristianfoss/library-linux-headers:stable-scratch
+        DEP2SRC: /
+        DEP2DEST: /newsys
+        DEP3: kristianfoss/library-glibc:glibc-build-stable-scratch
+        DEP3SRC: /
+        DEP3DEST: /newsys
+        DEP5: kristianfoss/library-binutils:binutils-build-stable-scratch
+        DEP5SRC: /
+        DEP5DEST: /newsys
+        BUILD_PKGS: groff gawk bison python3
+        SETUP_CMD: |
+          export CXXFLAGS='-O3 -L/newsys/usr/lib64 -I/newsys/include -I/newsys/usr/include --sysroot=/newsys'
+          export CFLAGS='-O3 -L/newsys/usr/lib64 -I/newsys/include -I/newsys/usr/include --sysroot=/newsys'
+          mkdir -p ../build
+          cd ../build
+          ../glibc/configure --prefix=/usr --enable-shared --enable-static-pie --enable-static-nss --with-headers=/newsys/usr/include --with-binutils=/newsys
+        BUILD_CMD: |
+          cd ../build
+          make -j$$(getconf _NPROCESSORS_ONLN)
+          make DESTDIR="/tmp/out" install
+        POST_CMD: |
+          ls -lah /tmp/out/*
+        FINAL_BASE: scratch
+        USER: user
+    image: kristianfoss/library-glibc:glibc-build-stable-scratch
+
+  #
+  # libisl
+  #
+  # Website: http://freshmeat.sourceforge.net/projects/isl
+  #
+  libislStableScratch:
+    build:
+      <<: *sourceLibraryBuilder
+      args:
+        SOURCE_IMAGE: kristianfoss/source-libisl:stable-scratch
+        BUILD_IMAGE: debian:sid-slim
+        DEFAULT_PKGS: build-essential
+        PKG_MANAGER: rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && apt update && apt-get --no-install-recommends install -y
+        SOURCE_PATH: /src/libisl
+        DEP1: kristianfoss/library-glibc:glibc-build-stable-scratch
+        DEP1SRC: /
+        DEP1DEST: /newsys
+        DEP2: kristianfoss/library-linux-headers:stable-scratch
+        DEP2SRC: /
+        DEP2DEST: /newsys
+        DEP3: kristianfoss/programs-gcc:curl-build-stable-scratch
+        DEP3SRC: /
+        DEP3DEST: /newsys
+        DEP4: kristianfoss/library-gmp:libgmp-build-stable-scratch
+        DEP4SRC: /
+        DEP4DEST: /newsys
+        DEP5: kristianfoss/library-binutils:binutils-build-stable-scratch
+        DEP5SRC: /
+        DEP5DEST: /newsys
+        BUILD_PKGS: groff gawk bison python3
+        SETUP_CMD: |
+          export CXXFLAGS='-O3 -L/newsys/usr/lib64 -I/newsys/include -I/newsys/usr/include --sysroot=/newsys'
+          export CFLAGS='-O3 -L/newsys/usr/lib64 -I/newsys/include -I/newsys/usr/include --sysroot=/newsys'
+          export LDFLAGS='-s --sysroot=/newsys'
+          ./configure --prefix=/usr \
+            --with-pic
+        BUILD_CMD: |
+          make -j$$(getconf _NPROCESSORS_ONLN)
+          make DESTDIR="/tmp/out" install
+        POST_CMD: |
+          ls -lah /tmp/out/*
+        FINAL_BASE: scratch
+        USER: user
+    image: kristianfoss/library-isl:libisl-build-stable-scratch
+
+  #
+  # GCC
+  #
+  # Website: https://gcc.gnu.org/
+  # Repo: gcc.gnu.org/git/gcc.git
+  # Docs: https://gcc.gnu.org/wiki
+  #
+  # gccStableScratch:
+  #   build:
+  #     <<: *sourceStaticBuilder
+  #     args:
+  #       SOURCE_IMAGE: kristianfoss/source-gcc:stable-scratch
+  #       BUILD_IMAGE: debian:sid-slim
+  #       DEFAULT_PKGS: build-essential
+  #       PKG_MANAGER: rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache && apt update && apt-get --no-install-recommends install -y
+  #       SOURCE_PATH: /src/gcc
+  #       BINARY_NAME: gcc
+  #       DEP1: kristianfoss/library-glibc:glibc-build-stable-scratch
+  #       DEP1SRC: /
+  #       DEP1DEST: /newsys
+  #       DEP2: kristianfoss/library-zlib:zlib-build-stable-scratch
+  #       DEP2SRC: /
+  #       DEP2DEST: /newsys
+  #       DEP3: kristianfoss/programs-perl:perl-stable-scratch
+  #       DEP3SRC: /
+  #       DEP3DEST: /
+  #       DEP4: kristianfoss/library-openssl:openssl-stable-scratch
+  #       DEP4SRC: /
+  #       DEP4DEST: /newsys
+  #       DEP5: kristianfoss/library-gcc:gcc-stable-scratch
+  #       DEP5SRC: /
+  #       DEP5DEST: /newsys
+  #       DEP6: kristianfoss/library-gmp:libgmp-build-stable-scratch
+  #       DEP6SRC: /
+  #       DEP6DEST: /newsys
+  #       DEP7: kristianfoss/library-mpc:libmpc-build-stable-scratch
+  #       DEP7SRC: /
+  #       DEP7DEST: /newsys
+  #       DEP8: kristianfoss/library-mpfr:libmpfr-build-stable-scratch
+  #       DEP8SRC: /
+  #       DEP8DEST: /newsys
+  #       DEP9: kristianfoss/library-linux-headers:stable-scratch
+  #       DEP9SRC: /
+  #       DEP9DEST: /newsys
+  #       DEP10: kristianfoss/library-isl:libisl-build-stable-scratch
+  #       DEP10SRC: /
+  #       DEP10DEST: /newsys
+  #       BUILD_PKGS: automake autoconf bash groff libtool bison flex
+  #       SETUP_CMD: |
+  #         ls -lah /newsys/usr/lib64
+  #         ls -lah /newsys/usr/include
+  #         ls -lah /newsys/lib64
+
+  #         export CFLAGS='-static -L/newsys/usr/lib64 -I/newsys/include --sysroot=/newsys'
+  #         export LDFLAGS='-s --sysroot=/newsys'
+
+  #         mkdir build
+  #         cd build 
+  #         ../configure --prefix=/usr --disable-multilib --enable-lto --with-system-zlib --with-gmp=/newsys/usr
+  #       BUILD_CMD: |
+  #         cd build
+  #         make
+  #         make DESTDIR="/tmp/gcc" install
+  #       POST_CMD: |
+  #         ls -lah /tmp/gcc/usr
+  #       FINAL_BASE: scratch
+  #       USER: user
+  #   image: kristianfoss/programs-gcc:gcc-build-stable-scratch
+    
+
   #
   # Caddy
   #
