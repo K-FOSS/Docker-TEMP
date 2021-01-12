@@ -103,6 +103,26 @@ services:
   #   image: kristianfoss/source-linux-headers:stable-scratch
 
   #
+  # Go Language
+  #
+  # Website: https://golang.org/
+  # Repo: https://github.com/golang/go
+  # Docs: https://golang.org/doc/
+  #
+  goStableSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /src
+        FETCH_PKGS: wget ack
+        FETCH_CMD: |
+          export TAG=$$(wget -q -O - https://go.googlesource.com/go/+refs | ack -o 'go\d{1}\.\d{1,2}\.\d{1,2}' | sort -V | tail -1)
+          echo "Cloning tag $${TAG}"
+          git clone --depth 1 -b $${TAG} https://go.googlesource.com/go
+        SOURCE_PATH: /src/go
+    image: kristianfoss/source-go:stable-scratch
+
+  #
   # Caddy Source
   #
   # Website: https://caddyserver.com/
@@ -117,3 +137,46 @@ services:
         SOURCE_PATH: /go/src/github.com/caddyserver/caddy
     image: kristianfoss/source-caddy:main-scratch
 
+  #
+  # Minio
+  #
+  # Website: https://min.io
+  # Repo: https://github.com/minio/minio
+  # Docs: https://docs.min.io/
+  #
+  minioStableSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /usr/lib/go/src/github.com/minio
+        FETCH_PKGS: jq wget
+        FETCH_CMD: |
+          export TAG=$$(wget -O - https://api.github.com/repos/minio/minio/releases/latest | jq -r '.tag_name')
+          git clone --depth 1 -b $${TAG} https://github.com/minio/minio.git
+        SOURCE_PATH: /usr/lib/go/src/github.com/minio/minio
+    image: kristianfoss/source-minio:stable-scratch
+
+  minioMainSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /usr/lib/go/src/github.com/minio
+        FETCH_CMD: |
+          git clone --depth 1 -b master https://github.com/minio/minio.git
+        SOURCE_PATH: /usr/lib/go/src/github.com/minio/minio
+    image: kristianfoss/source-minio:main-scratch
+
+  #
+  # Minio MC
+  #
+  minioMCStableSourceScratch:
+    build:
+      <<: *sourceBuilder
+      args:
+        FETCH_CWD: /usr/lib/go/src/github.com/minio
+        FETCH_PKGS: jq wget
+        FETCH_CMD: |
+          export TAG=$$(wget -O - https://api.github.com/repos/minio/mc/releases/latest | jq -r '.tag_name')
+          git clone --depth 1 -b $${TAG} https://github.com/minio/mc.git
+        SOURCE_PATH: /usr/lib/go/src/github.com/minio/mc
+    image: kristianfoss/source-minio-mc:stable-scratch

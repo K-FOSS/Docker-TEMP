@@ -167,7 +167,6 @@ services:
   #       FINAL_BASE: scratch
   #       USER: user
   #   image: kristianfoss/programs-gcc:gcc-build-stable-scratch
-    
 
   #
   # Caddy
@@ -181,7 +180,7 @@ services:
       <<: *sourceStaticBuilder
       args:
         SOURCE_IMAGE: kristianfoss/source-caddy:main-scratch
-        BUILD_IMAGE: golang:1.14-alpine
+        BUILD_IMAGE: golang:alpine
         SOURCE_PATH: /go/src/github.com/caddyserver/caddy
         BINARY_NAME: caddy
         BUILD_PKGS: bash
@@ -199,7 +198,7 @@ services:
       <<: *sourceStaticBuilder
       args:
         SOURCE_IMAGE: kristianfoss/source-caddy:main-scratch
-        BUILD_IMAGE: golang:1.14-alpine
+        BUILD_IMAGE: golang:alpine
         SOURCE_PATH: /go/src/github.com/caddyserver/caddy
         BINARY_NAME: caddy
         BUILD_PKGS: bash
@@ -211,3 +210,80 @@ services:
           mv /go/src/github.com/caddyserver/caddy/caddy /tmp/caddy/usr/bin/
         FINAL_BASE: scratch
     image: kristianfoss/programs-caddy:caddy-cf-main-scratch
+
+  #
+  # Minio
+  #
+  # Website: https://min.io
+  # Repo: https://github.com/minio/minio
+  # Docs: https://docs.min.io/
+  #
+  minioStableScratch:
+    build:
+      <<: *sourceStaticBuilder
+      args:
+        SOURCE_IMAGE: kristianfoss/source-minio:stable-scratch
+        BUILD_IMAGE: golang:alpine
+        SOURCE_PATH: /usr/lib/go/src/github.com/minio/minio
+        BINARY_NAME: minio
+        BUILD_PKGS: make
+        BUILD_CMD: |
+          export CGO_ENABLED=0
+          export GO111MODULE=on
+          export PATH="$$PATH:/data/go/bin"
+          make build
+        POST_CMD: |
+          ls -lah /usr/lib/go/src/github.com/minio/minio
+          mv /usr/lib/go/src/github.com/minio/minio/minio  /tmp/minio/usr/bin/
+          chmod +x /tmp/minio/usr/bin/minio
+        FINAL_BASE: scratch
+        USER: user
+    image: kristianfoss/programs-minio:minio-build-stable-scratch
+
+  minioMainScratch:
+    build:
+      <<: *sourceStaticBuilder
+      args:
+        SOURCE_IMAGE: kristianfoss/source-minio:main-scratch
+        BUILD_IMAGE: golang:alpine
+        SOURCE_PATH: /usr/lib/go/src/github.com/minio/minio
+        BINARY_NAME: minio
+        BUILD_PKGS: make
+        BUILD_CMD: |
+          export CGO_ENABLED=0
+          export GO111MODULE=on
+          export PATH="$$PATH:/data/go/bin"
+          make build
+        POST_CMD: |
+          ls -lah /usr/lib/go/src/github.com/minio/minio
+          mv /usr/lib/go/src/github.com/minio/minio/minio /tmp/minio/usr/bin/
+          chmod +x /tmp/minio/usr/bin/minio
+        FINAL_BASE: scratch
+        USER: user
+    image: kristianfoss/programs-minio:minio-build-main-scratch
+
+  #
+  # Minio MC
+  #
+  minioMCStableScratch:
+    build:
+      <<: *sourceStaticBuilder
+      args:
+        SOURCE_IMAGE: kristianfoss/source-minio-mc:stable-scratch
+        BUILD_IMAGE: golang:alpine
+        SOURCE_PATH: /usr/lib/go/src/github.com/minio/mc
+        BINARY_NAME: minio
+        BUILD_PKGS: make
+        BINARY_NAME: mc
+        BUILD_CMD: |
+          export CGO_ENABLED=0
+          export GO111MODULE=on
+          export PATH="$$PATH:/data/go/bin"
+          make build
+        POST_CMD: |
+          ls -lah /usr/lib/go/src/github.com/minio/mc
+          mv /usr/lib/go/src/github.com/minio/mc/mc  /tmp/mc/usr/bin/
+          chmod +x /tmp/mc/usr/bin/mc
+        FINAL_BASE: scratch
+        USER: user
+    image: kristianfoss/programs-minio-mc:minio-mc-stable-scratch
