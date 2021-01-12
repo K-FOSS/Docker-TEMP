@@ -1,7 +1,7 @@
 #!/bin/sh
 BASEDIR=$(dirname "$0")
 
-PUSH_IMAGES="kristianfoss/programs-caddy kristianfoss/source-minio kristianfoss/programs-minio"
+PUSH_IMAGES="kristianfoss/programs-caddy kristianfoss/programs-minio"
 
 cd "${BASEDIR}/../Extras/Builder/"
 ./setup.sh
